@@ -1,0 +1,106 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Calendar date dimension covering the full date range present in the RavenStack seed dataset."
+    columns:
+      - name: date_day
+        description: "Date (day grain)."
+      - name: month_start
+        description: "First day of the calendar month for date_day."
+      - name: month_end
+        description: "Last day of the calendar month for date_day."
+      - name: year
+        description: "Calendar year."
+      - name: quarter
+        description: "Calendar quarter (1–4)."
+      - name: month
+        description: "Calendar month number (1–12)."
+      - name: day_of_week
+        description: "ISO day of week (1=Mon ... 7=Sun)."
+      - name: is_weekend
+        description: "True if day_of_week is Saturday or Sunday."
+
+  - name: dim_account
+    description: "One row per account with descriptive attributes and derived tenure fields."
+    columns:
+      - name: account_id
+        description: "Primary key for the account."
+      - name: account_name
+        description: "Account name."
+      - name: industry
+        description: "Industry classification for the account."
+      - name: country
+        description: "Country for the account."
+      - name: signup_date
+        description: "Date the account signed up."
+      - name: referral_source
+        description: "Acquisition channel (organic, ads, event, partner, other)."
+      - name: initial_plan_tier
+        description: "Plan tier at signup (from accounts seed)."
+      - name: initial_seats
+        description: "Seat count at signup."
+      - name: initial_is_trial
+        description: "Whether the account started as a trial."
+      - name: churn_flag_ever
+        description: "Seed-provided churn flag indicating the account churned at any point."
+      - name: tenure_days
+        description: "Days since signup_date as of the max date in dim_date."
+      - name: tenure_bucket
+        description: "Tenure bucket derived from tenure_days via the tenure_bucket macro."
+
+  - name: fct_account_monthly_subscription
+    description: >
+      One row per account per calendar month (month_start). Contains monthly subscription MRR,
+      activity, churn flags, churn reason, and MRR movement (new/expansion/contraction/churned).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['account_id', 'month_start']
+    columns:
+      - name: account_id
+        description: "Account grain key."
+        tests: [not_null]
+
+      - name: month_start
+        description: "Calendar month key (first day of month)."
+        tests: [not_null]
+
+      - name: mrr
+        description: "Sum of mrr_amount for subscriptions active during the month."
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                column_name: mrr
+                expression: ">= 0"
+
+      - name: active_subscription_count
+        description: "Count of distinct active subscriptions for the account during the month."
+
+      - name: is_active
+        description: "True if monthly MRR > 0 (at least one active paid subscription in the month)."
+
+      - name: prior_month_mrr
+        description: "Previous calendar month MRR for the account (0 if none)."
+
+      - name: mrr_churned
+        description: "Revenue churn flag: prior_month_mrr > 0 and current month mrr = 0."
+
+      - name: logo_churned
+        description: "Logo churn flag: account has a churn_event with churn_date in this month."
+
+      - name: churn_reason_code
+        description: "Churn reason_code for churn events in the month (if any)."
+
+      - name: new_mrr
+        description: "MRR classified as new (prior_month_mrr = 0 and mrr > 0)."
+
+      - name: expansion_mrr
+        description: "Positive MRR delta when mrr increases vs prior month."
+
+      - name: contraction_mrr
+        description: "Positive amount of MRR decrease when mrr drops but remains > 0."
+
+      - name: churned_mrr
+        description: "Prior month MRR when account drops to 0 MRR (revenue churn)."

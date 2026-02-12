@@ -1,0 +1,27 @@
+name: ravenstack_churn
+profile: ravenstack_churn
+
+seed-paths: ["seeds"]
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  ravenstack_churn:
+    +schema: raw
+
+models:
+  ravenstack_churn:
+    staging:
+      +materialized: view
+
+    intermediate:
+      +materialized: view
+
+    marts:
+      +materialized: table
+
+

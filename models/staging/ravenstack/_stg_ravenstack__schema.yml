@@ -1,0 +1,96 @@
+version: 2
+
+models:
+
+  - name: stg_ravenstack__accounts
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - unique
+      - name: plan_tier
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Basic', 'Pro', 'Enterprise']
+      - name: referral_source
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['organic', 'ads', 'event', 'partner', 'other']
+
+  - name: stg_ravenstack__subscriptions
+    columns:
+      - name: subscription_id
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ravenstack__accounts')
+                field: account_id
+      - name: billing_frequency
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['monthly', 'annual']
+      - name: plan_tier
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Basic', 'Pro', 'Enterprise']
+
+  - name: stg_ravenstack__feature_usage
+    columns:
+      - name: usage_id
+        tests:
+          - not_null
+          - unique
+      - name: subscription_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ravenstack__subscriptions')
+                field: subscription_id
+
+  - name: stg_ravenstack__support_tickets
+    columns:
+      - name: ticket_id
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ravenstack__accounts')
+                field: account_id
+      - name: priority
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'urgent']
+
+  - name: stg_ravenstack__churn_events
+    columns:
+      - name: churn_event_id
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ravenstack__accounts')
+                field: account_id
+      - name: reason_code
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['pricing', 'support', 'features', 'competitor', 'budget', 'unknown']
