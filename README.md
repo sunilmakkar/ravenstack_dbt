@@ -11,6 +11,9 @@ The goal of the project is not to build a large analytics platform, but to demon
 **Dataset credit:**  
 This project uses a fully synthetic SaaS dataset created by **River @ Rivalytics**.
 
+**Read my blog post to learn more:** 
+https://medium.com/@sunil.makkar97/how-i-answered-a-real-saas-churn-question-with-one-clean-dbt-model-d02164d2de3f
+
 ---
 
 ## Executive summary – what the data shows
