@@ -100,7 +100,7 @@ final as (
              then (mrr - prior_month_mrr) else 0 end as expansion_mrr,
 
         case when {{ mrr_waterfall('mrr', 'prior_month_mrr') }} = 'contraction'
-             then (prior_month_mrr - mrr) else 0 end as contraction_mrr,
+             then -1 * (prior_month_mrr - mrr) else 0 end as contraction_mrr,
 
         case when {{ mrr_waterfall('mrr', 'prior_month_mrr') }} = 'churned'
              then prior_month_mrr else 0 end as churned_mrr
